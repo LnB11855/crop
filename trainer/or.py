@@ -5,6 +5,8 @@ import scipy.io as sio
 import argparse
 from tensorflow.python.lib.io import file_io
 import tensorflow as tf
+from datetime import datetime
+import time
 np.random.seed(1)
 def initialize_parameters():
     W1=np.random.randn(60,100)
