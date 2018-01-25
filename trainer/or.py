@@ -1,14 +1,9 @@
 import math
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 import scipy.io as sio
-data= sio.loadmat ('D://challenge//5000test.mat')
-X = data['X_train'][0:100,0:100]
-Y = data['Y_train'][0:100]
-X=X.T
-Y=Y.T
-
+import argparse
+from tensorflow.python.lib.io import file_io
 np.random.seed(1)
 def initialize_parameters():
     W1=np.random.randn(60,100)
@@ -103,7 +98,14 @@ def update_parameters(parameters, grads, learning_rate = 0.000001):
                   "b3": b3,
                   }
     return parameters
-def nn_model(X, Y, num_iterations = 2, print_cost=False):
+def nn_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
+    file_stream = file_io.FileIO(train_file, mode='r')
+    num_iterations=100
+    data= sio.loadmat (file_stream)
+    X = data['X_train'][0:100,0:100]
+    Y = data['Y_train'][0:100]
+    X=X.T
+    Y=Y.T
     np.random.seed(3)
     parameters = initialize_parameters()
     # W1 = parameters["W1"]
@@ -117,15 +119,24 @@ def nn_model(X, Y, num_iterations = 2, print_cost=False):
         cost = compute_cost(Z3, Y)
         grads = backward_propagation(parameters, cache, X, Y)
         parameters = update_parameters(parameters, grads, learning_rate = 0.000001)
-        if print_cost and i % 1== 0:
+        if i % 1== 0:
             print ("Cost after iteration %i: %f %f" %(i, cost, np.corrcoef (Z3, Y)[0, 1]))
     return parameters
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    # Input Arguments
+    parser.add_argument(
+        '--train-file',
+        help='GCS or local paths to training data',
+        required=True
+    )
+    parser.add_argument(
+        '--job-dir',
+        help='GCS location to write checkpoints and export models',
+        required=True
+    )
+    args = parser.parse_args()
+    arguments = args.__dict__
 
+    train_model(**arguments)
 
-parameters = nn_model(X, Y, num_iterations=100000, print_cost=True)
-# print("W1 = " + str(parameters["W1"]))
-# print("b1 = " + str(parameters["b1"]))
-# print("W2 = " + str(parameters["W2"]))
-# print("b2 = " + str(parameters["b2"]))
-# print("W3 = " + str(parameters["W3"]))
-# print("b3 = " + str(parameters["b3"]))
