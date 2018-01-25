@@ -4,6 +4,7 @@ import h5py
 import scipy.io as sio
 import argparse
 from tensorflow.python.lib.io import file_io
+import tensorflow as tf
 np.random.seed(1)
 def initialize_parameters():
     W1=np.random.randn(60,100)
@@ -99,6 +100,8 @@ def update_parameters(parameters, grads, learning_rate = 0.000001):
                   }
     return parameters
 def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
+    logs_path = job_dir + '/logs/' + datetime.now().isoformat()
+    writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
     file_stream = file_io.FileIO(train_file, mode='r')
     num_iterations=100
     data= sio.loadmat (file_stream)
@@ -114,13 +117,17 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **arg
     # b2 = parameters["b2"]
     # W3 = parameters["W3"]
     # b3 = parameters["b3"]
+    train_cost_summary = tf.summary.scalar("train_cost", Z3)
+    writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
     for i in range(0, num_iterations):
         Z3, cache = forward_propagation(X, parameters)
         cost = compute_cost(Z3, Y)
         grads = backward_propagation(parameters, cache, X, Y)
         parameters = update_parameters(parameters, grads, learning_rate = 0.000001)
         if i % 1== 0:
+            writer.add_summary(_test_cost_summary, i)
             print ("Cost after iteration %i: %f %f" %(i, cost, np.corrcoef (Z3, Y)[0, 1]))
+    writer.flush()
     return parameters
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
