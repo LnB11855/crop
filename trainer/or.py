@@ -98,7 +98,7 @@ def update_parameters(parameters, grads, learning_rate = 0.000001):
                   "b3": b3,
                   }
     return parameters
-def nn_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
+def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
     file_stream = file_io.FileIO(train_file, mode='r')
     num_iterations=100
     data= sio.loadmat (file_stream)
