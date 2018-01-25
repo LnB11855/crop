@@ -119,7 +119,6 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **arg
     # b2 = parameters["b2"]
     # W3 = parameters["W3"]
     # b3 = parameters["b3"]
-    train_cost_summary = tf.summary.scalar("train_cost", Z3)
     writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
     for i in range(0, num_iterations):
         Z3, cache = forward_propagation(X, parameters)
@@ -127,7 +126,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **arg
         grads = backward_propagation(parameters, cache, X, Y)
         parameters = update_parameters(parameters, grads, learning_rate = 0.000001)
         if i % 1== 0:
-            writer.add_summary(_test_cost_summary, i)
+            writer.add_summary(cost, i)
             print ("Cost after iteration %i: %f %f" %(i, cost, np.corrcoef (Z3, Y)[0, 1]))
     writer.flush()
     return parameters
