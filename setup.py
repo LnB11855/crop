@@ -6,7 +6,7 @@ if __name__ == '__main__':
   install_requires=[
       'keras',
       'h5py',
-    'matplotlib.pyplot'
+    'matplotlib'
   ],
   zip_safe=False
         )
