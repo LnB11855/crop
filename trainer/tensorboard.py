@@ -6,6 +6,8 @@ from sklearn.model_selection import KFold
 import scipy.io as sio
 import argparse
 from tensorflow.python.lib.io import file_io
+from datetime import datetime
+import time
 def create_placeholders(n_x, n_y):
     X = tf.placeholder(tf.float32, shape = [n_x, None])
     Y = tf.placeholder(tf.float32, shape = [n_y, None])
@@ -99,6 +101,7 @@ def update_parameters(parameters, grads, learning_rate = 1.2):
                   }
     return parameters
 def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate = 0.0012,minibatch_size = 32,print_cost=False):
+    logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
     tf.set_random_seed(1)                             # to keep consistent results
     seed = 3                                          # to keep consistent results
