@@ -111,11 +111,12 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
     Z3= forward_propagation(X, parameters)
     cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     train_cost_summary = tf.summary.scalar("train_cost", cost)
-    writer = tf.summary.FileWriter(logpath, graph=tf.get_default_graph())
+    
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
     init = tf.global_variables_initializer()
     with tf.Session() as sess:
       sess.run(init)
+      writer = tf.summary.FileWriter(logpath, graph=tf.get_default_graph())
       for epoch in range(num_epochs):
         num_minibatches = int(m/ minibatch_size)
         epoch_cost = 0
@@ -130,7 +131,7 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
         if print_cost and epoch % 1 == 0:
             coff=np.corrcoef(sess.run(Z3, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1]
             print ("Cost after epoch %i: %f correlation coefficient: %f" %(epoch, epoch_cost,coff)
-            _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train, Y: Y_train})
+            _,_train_cost_summary=sess.run([cost,train_cost_summary],feed_dict={X: X_train, Y: Y_train})
             writer.add_summary(_train_cost_summary, epoch)
         costs.append(epoch_cost)
         
