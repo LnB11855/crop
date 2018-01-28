@@ -101,8 +101,8 @@ def update_parameters(parameters, grads, learning_rate = 1.2):
                   }
     return parameters
 def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate = 0.0012,minibatch_size = 32,print_cost=False):
-    logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
+    logpath = job_dir + '/logs/' + datetime.now().isoformat()
     tf.set_random_seed(1)                             # to keep consistent results
     seed = 3                                          # to keep consistent results
     n_x = X_train.shape[0]
@@ -114,7 +114,7 @@ def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate =
     Z3= forward_propagation(X, parameters)
     cost = compute_cost(Z3, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
-    writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
+    writer = tf.summary.FileWriter(logpath, graph=tf.get_default_graph())
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
     init = tf.global_variables_initializer()
     with tf.Session() as sess:
@@ -141,6 +141,8 @@ def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate =
     writer.flush()
     return parameters,val_cost,val_corr
 def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
+    logs_path = job_dir + '/logs/' + datetime.now().isoformat()
+
     file_stream = file_io.FileIO(train_file, mode='r')
     data= sio.loadmat (file_stream)
     n_fold=10
