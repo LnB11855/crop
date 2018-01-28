@@ -48,9 +48,6 @@ def forward_propagation(X, parameters):
              "Z3": Z3,
              }
     return Z3
-def compute_cost(Z3, Y):
-    cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
-    return cost
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     m = X.shape[1]  # number of training examples
     mini_batches = []
@@ -112,7 +109,7 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
     X, Y = create_placeholders(n_x, n_y)
     parameters = initialize_parameters()
     Z3= forward_propagation(X, parameters)
-    cost = compute_cost(Z3, Y)
+    cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     train_cost_summary = tf.summary.scalar("train_cost", cost)
     writer = tf.summary.FileWriter(logpath, graph=tf.get_default_graph())
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
@@ -133,7 +130,7 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
         if print_cost and epoch % 1 == 0:
             coff=np.corrcoef(sess.run(Z3, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1]
             print ("Cost after epoch %i: %f correlation coefficient: %f" %(epoch, epoch_cost,coff)
-            _train_cost_summary=sess.run([train_cost_summary], 
+            _train_cost_summary=sess.run(train_cost_summary, 
                         feed_dict={x: X_train, y_: Y_train})
             writer.add_summary(_train_cost_summary, epoch)
         costs.append(epoch_cost)
