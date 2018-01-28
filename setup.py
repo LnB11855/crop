@@ -6,7 +6,7 @@ if __name__ == '__main__':
   install_requires=[
       'keras',
       'h5py',
-    'sklearn'
+    'scikit-learn'
   ],
   zip_safe=False
         )
