@@ -110,6 +110,8 @@ def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate =
     parameters = initialize_parameters()
     Z3= forward_propagation(X, parameters)
     cost = compute_cost(Z3, Y)
+    train_cost_summary = tf.summary.scalar("train_cost", cost)
+    writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
     init = tf.global_variables_initializer()
     with tf.Session() as sess:
@@ -127,11 +129,13 @@ def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate =
         if print_cost and epoch % 1 == 0:
             print ("Cost after epoch %i: %f correlation coefficient: %f" %(epoch, epoch_cost,np.corrcoef(sess.run(Z3, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1]))
         costs.append(epoch_cost)
+        writer.add_summary(_test_cost_summary, epoch)
       val_cost=0
       val_cost= sess.run(cost, feed_dict={X: XX_val, Y: YY_val})
       val_pre=sess.run(Z3, feed_dict={X: XX_val, Y: YY_val})
       val_corr= np.corrcoef(val_pre, YY_val)[0, 1]
       print("Cost-validation data : %f correlation coefficient-validation data: %f" % (val_cost,val_corr))
+    writer.flush()
     return parameters,val_cost,val_corr
 def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
     file_stream = file_io.FileIO(train_file, mode='r')
