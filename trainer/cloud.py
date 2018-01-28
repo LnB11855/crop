@@ -1,6 +1,5 @@
 import math
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.python.framework import ops
 from sklearn.model_selection import KFold
@@ -133,12 +132,6 @@ def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate =
       val_pre=sess.run(Z3, feed_dict={X: XX_val, Y: YY_val})
       val_corr= np.corrcoef(val_pre, YY_val)[0, 1]
       print("Cost-validation data : %f correlation coefficient-validation data: %f" % (val_cost,val_corr))
-
-    plt.plot(np.squeeze(costs))
-    plt.ylabel('cost')
-    plt.xlabel('iterations (per tens)')
-    plt.title("Learning rate =" + str(learning_rate))
-    plt.show()
     return parameters,val_cost,val_corr
 def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
     file_stream = file_io.FileIO(train_file, mode='r')
