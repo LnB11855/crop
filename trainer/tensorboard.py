@@ -100,9 +100,9 @@ def update_parameters(parameters, grads, learning_rate = 1.2):
                   "b3": b3,
                   }
     return parameters
-def nn_model(X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate = 0.0012,minibatch_size = 32,print_cost=False):
+def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate = 0.0012,minibatch_size = 32,print_cost=False):
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
-    logpath = job_dir + '/logs/' + datetime.now().isoformat()
+    logpath = log
     tf.set_random_seed(1)                             # to keep consistent results
     seed = 3                                          # to keep consistent results
     n_x = X_train.shape[0]
@@ -158,7 +158,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **arg
         XX_train, XX_val = X_train[train_index].T, X_train[val_index].T
         YY_train, YY_val = Y_train[train_index].T, Y_train[val_index].T
 
-        parameters, val_cost, val_corr = nn_model(XX_train, YY_train,XX_val,YY_val, 10000, learning_rate=0.00012, minibatch_size=500, print_cost=True)
+        parameters, val_cost, val_corr = nn_model(logs_path,XX_train, YY_train,XX_val,YY_val, 10000, learning_rate=0.00012, minibatch_size=500, print_cost=True)
         # print("W1 = " + str(parameters["W1"]))
         # print("b1 = " + str(parameters["b1"]))
         # print("W2 = " + str(parameters["W2"]))
