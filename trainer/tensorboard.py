@@ -129,10 +129,13 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
             (minibatch_X, minibatch_Y) = minibatch
             _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
             epoch_cost += minibatch_cost / num_minibatches
+        
         if print_cost and epoch % 1 == 0:
-            print ("Cost after epoch %i: %f correlation coefficient: %f" %(epoch, epoch_cost,np.corrcoef(sess.run(Z3, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1]))
+            coff=np.corrcoef(sess.run(Z3, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1])
+            print ("Cost after epoch %i: %f correlation coefficient: %f" %(epoch, epoch_cost,coff)
+            writer.add_summary(coff, epoch)
         costs.append(epoch_cost)
-        writer.add_summary(_train_cost_summary, epoch)
+        
       val_cost=0
       val_cost= sess.run(cost, feed_dict={X: XX_val, Y: YY_val})
       val_pre=sess.run(Z3, feed_dict={X: XX_val, Y: YY_val})
