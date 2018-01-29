@@ -98,6 +98,7 @@ def update_parameters(parameters, grads, learning_rate = 1.2):
                   }
     return parameters
 def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_rate = 0.0012,minibatch_size = 32,print_cost=False):
+    num_epochs=int(num_epochs)
     ops.reset_default_graph()                         # to be able to rerun the model without overwriting tf variables
     logpath = log
     tf.set_random_seed(1)                             # to keep consistent results
