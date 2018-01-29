@@ -180,7 +180,7 @@ if __name__ == '__main__':
         help='GCS location to write checkpoints and export models',
         required=True
     )
-        parser.add_argument(
+    parser.add_argument(
         '--train-y',
         help='GCS or local paths to training dataY',
         required=True
