@@ -142,7 +142,7 @@ def nn_model(log, X_train, Y_train, XX_val,YY_val,num_epochs = 10000, learning_r
       print("Cost-validation data : %f correlation coefficient-validation data: %f" % (val_cost,val_corr))
     writer.flush()
     return parameters,val_cost,val_corr
-def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **args):
+def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', num_ep=100,**args):
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
 
     file_stream = file_io.FileIO(train_file, mode='r')
@@ -160,7 +160,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', **arg
         XX_train, XX_val = X_train[train_index].T, X_train[val_index].T
         YY_train, YY_val = Y_train[train_index].T, Y_train[val_index].T
 
-        parameters, val_cost, val_corr = nn_model(logs_path,XX_train, YY_train,XX_val,YY_val, 10000, learning_rate=0.00012, minibatch_size=500, print_cost=True)
+        parameters, val_cost, val_corr = nn_model(logs_path,XX_train, YY_train,XX_val,YY_val, num_ep, learning_rate=0.00012, minibatch_size=500, print_cost=True)
         # print("W1 = " + str(parameters["W1"]))
         # print("b1 = " + str(parameters["b1"]))
         # print("W2 = " + str(parameters["W2"]))
@@ -184,6 +184,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--job-dir',
         help='GCS location to write checkpoints and export models',
+        required=True
+    )
+    parser.add_argument(
+        '--num-ep',
+        help='number of epochs',
         required=True
     )
     args = parser.parse_args()
