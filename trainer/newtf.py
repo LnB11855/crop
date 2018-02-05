@@ -122,7 +122,8 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     with tf.Session() as sess:
         sess.run(init)
         writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
-        for epoch in range(training_epochs):
+        for epoch in range(int(training_epochs)):
+            batch_size=int(batch_size)
             num_minibatches = int(m / batch_size)
             epoch_cost = 0
             seed = seed + 1
