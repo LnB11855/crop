@@ -66,7 +66,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
 #     Y_train = data['Y_train']
     X_train,Y_train=pickle.load(file_stream)
     X_train=np.float64(X_train[:,1:])
-    Y_train=np.float64(Y_train)
+    Y_train=np.float64(Y_train).reshape((X_train.shape[0],1))
     learning_rate=np.float64(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
