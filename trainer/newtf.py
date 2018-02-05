@@ -110,12 +110,12 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     cost=compute_cost(outlayer, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
     optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
-    if opt==1:
-      optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
-    if opt==2:
-      optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)  
-    if opt==3:
-      optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)  
+#     if opt==1:
+#       optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
+#     if opt==2:
+#       optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)  
+#     if opt==3:
+#       optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)  
     init = tf.global_variables_initializer()
     m=X_train.shape[0]
     costs = []
