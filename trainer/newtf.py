@@ -32,7 +32,7 @@ def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
         mini_batches.append(mini_batch)
 
     return mini_batches
-def multilayer_perceptron(x):
+def multilayer_perceptron(x,weights,biases):
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
     A1= tf.nn.tanh(layer_1)
     layer_2 = tf.add(tf.matmul(A1, weights['h2']), biases['b2'])
@@ -106,7 +106,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
         'b9': tf.Variable(tf.random_normal([n_hidden_9])),
         'out': tf.Variable(tf.random_normal([n_output]))
     }
-    outlayer=multilayer_perceptron(X)
+    outlayer=multilayer_perceptron(X,weights,biases)
     cost=compute_cost(outlayer, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
     if opt==1:
