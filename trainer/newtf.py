@@ -64,8 +64,11 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     data = sio.loadmat(file_stream)
     X_train = data['X_train']
     Y_train = data['Y_train']
-    X_train=np.float32(X_train)
-    Y_train=np.float32(Y_train)
+    X_train=np.float64(X_train)
+    Y_train=np.float64(Y_train)
+    learning_rate=np.float64(learning_rate)
+    batch_size=int(batch_size)
+    training_epochs=int(training_epochs)
     print(X_train.shape,Y_train.shape)
     np.random.seed(1)
     n_input =19465
@@ -108,7 +111,8 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     outlayer=multilayer_perceptron(X,weights,biases)
     cost=compute_cost(outlayer, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
-    optimizer = tf.train.AdadeltaOptimizer(learning_rate=np.float32(learning_rate)).minimize(cost)
+
+    optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
 #     if opt==1:
 #       optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
 #     if opt==2:
@@ -122,8 +126,8 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     with tf.Session() as sess:
         sess.run(init)
         writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
-        for epoch in range(int(training_epochs)):
-            batch_size=int(batch_size)
+        for epoch in range(training_epochs):
+            
             num_minibatches = int(m / batch_size)
             epoch_cost = 0
             seed = seed + 1
