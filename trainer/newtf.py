@@ -61,17 +61,19 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     file_stream = file_io.FileIO(train_file, mode='r')
     # X_train, Y_train = pickle.load(file_stream)
     ops.reset_default_graph()
-    data = sio.loadmat(file_stream)
-    X_train = data['X_train']
-    Y_train = data['Y_train']
-    X_train=np.float64(X_train)
+#     data = sio.loadmat(file_stream)
+#     X_train = data['X_train']
+#     Y_train = data['Y_train']
+    X_train,Y_train=pickle.load(file_stream)
+    X_train=np.float64(X_train[:,1:])
     Y_train=np.float64(Y_train)
     learning_rate=np.float64(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
     print(X_train.shape,Y_train.shape)
     np.random.seed(1)
-    n_input =19465
+    n_input =X_train.shape[1]
+    print('number of features',n_input)
     n_hidden_1 = 256 # 1st layer number of neurons
     n_hidden_2 = 256 # 2nd layer number of neurons
     n_hidden_3 = 128 # 2nd layer number of neurons
