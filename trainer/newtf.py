@@ -54,8 +54,7 @@ def multilayer_perceptron(x,weights,biases):
     out_layer = tf.matmul(A9, weights['out']) + biases['out']
     return out_layer
 def compute_cost(Z3, Y):
-    # cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
-    cost=tf.metrics.mean_squared_error(Z3, Y)
+    cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     return cost
 def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
