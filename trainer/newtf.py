@@ -138,7 +138,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
                 _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
                 epoch_cost += minibatch_cost / num_minibatches
             if epoch % 1 == 0:
-                coff = np.corrcoef(sess.run(outlayer, feed_dict={X: X_train, Y: Y_train}), Y_train)[0, 1]
+                coff = 0
                 print("Cost after epoch %i: %f correlation coefficient: %f" % (
                 epoch, epoch_cost, coff ))
                 writer.add_summary(sess.run(cost,feed_dict={X: X_train, Y: Y_train}), epoch)
