@@ -7,6 +7,7 @@ if __name__ == '__main__':
       'keras',
       'h5py',
     'scikit-learn==0.19.1',
+    'pickle',
   ],
   zip_safe=False
         )
