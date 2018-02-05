@@ -109,6 +109,7 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     outlayer=multilayer_perceptron(X,weights,biases)
     cost=compute_cost(outlayer, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
+    optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
     if opt==1:
       optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
     if opt==2:
