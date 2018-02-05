@@ -141,7 +141,8 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
                 coff = 0
                 print("Cost after epoch %i: %f correlation coefficient: %f" % (
                 epoch, epoch_cost, coff ))
-                writer.add_summary(sess.run(cost,feed_dict={X: X_train, Y: Y_train}), epoch)
+                _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train, Y: Y_train})
+                writer.add_summary(_train_cost_summary, epoch)
             costs.append(epoch_cost)
     writer.flush()
 
