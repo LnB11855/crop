@@ -57,7 +57,7 @@ def compute_cost(Z3, Y):
     # cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     cost=tf.metrics.mean_squared_error(Z3, Y)
     return cost
-def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,**args):
+def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     file_stream = file_io.FileIO(train_file, mode='r')
     # X_train, Y_train = pickle.load(file_stream)
@@ -109,15 +109,19 @@ def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', train
     outlayer=multilayer_perceptron(X)
     cost=compute_cost(outlayer, Y)
     train_cost_summary = tf.summary.scalar("train_cost", cost)
-    #optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)
+    if opt==1:
+      optimizer = tf.train.AdadeltaOptimizer(learning_rate=learning_rate).minimize(cost)
+    if opt==2:
+      optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)  
+    if opt==3:
+      optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cost)  
     init = tf.global_variables_initializer()
     m=X_train.shape[0]
     costs = []
     seed=0
     with tf.Session() as sess:
         sess.run(init)
-        writer = tf.summary.FileWriter(logpath, graph=tf.get_default_graph())
+        writer = tf.summary.FileWriter(logs_path, graph=tf.get_default_graph())
         for epoch in range(training_epochs):
             num_minibatches = int(m / batch_size)
             epoch_cost = 0
@@ -164,6 +168,13 @@ if __name__ == '__main__':
         '--learning-rate',
         help='learning rate',
         required=True
+       
+    )
+        parser.add_argument(
+        '--opt',
+        help='choice of optimizer',
+        required=True
+       
     )
     args = parser.parse_args()
     arguments = args.__dict__
