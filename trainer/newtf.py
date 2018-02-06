@@ -56,17 +56,19 @@ def multilayer_perceptron(x,weights,biases):
 def compute_cost(Z3, Y):
     cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     return cost
-def train_model(train_file='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
+def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
-    file_stream = file_io.FileIO(train_file, mode='r')
-    # X_train, Y_train = pickle.load(file_stream)
     ops.reset_default_graph()
-#     data = sio.loadmat(file_stream)
-#     X_train = data['X_train']
-#     Y_train = data['Y_train']
+    file_stream = file_io.FileIO(train_fileA, mode='r')
     X_train,Y_train=pickle.load(file_stream)
     X_train=np.float64(X_train[:,1:])
     Y_train=np.float64(Y_train).reshape((X_train.shape[0],1))
+    file_stream = file_io.FileIO(train_fileB, mode='r')
+    X_trainB,Y_trainB=pickle.load(file_stream)
+    X_trainB=np.float64(X_trainB[:,1:])
+    Y_trainB=np.float64(Y_trainB).reshape((X_trainB.shape[0],1))
+    X_train=np.concatenate((X_trainB,X_train),axis=1)
+    Y_train=np.concatenate((Y_trainB,Y_train),axis=1)
     learning_rate=np.float64(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
@@ -153,7 +155,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # Input Arguments
     parser.add_argument(
-        '--train-file',
+        '--train-fileA',
+        help='GCS or local paths to training data',
+        required=True
+    )
+    parser.add_argument(
+        '--train-fileB',
         help='GCS or local paths to training data',
         required=True
     )
