@@ -9,6 +9,8 @@ from tensorflow.python.lib.io import file_io
 from datetime import datetime
 import pickle
 import time
+import sys
+
 
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
@@ -58,16 +60,19 @@ def compute_cost(Z3, Y):
     cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     return cost
 def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
+    
+    reload(sys)
+    sys.setdefaultencoding("ISO-8859-1")
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     ops.reset_default_graph()
 #     file_stream = file_io.FileIO(train_fileA, mode='r')
-    X_train,Y_train=pickle.loads(file_io.read_file_to_string(train_fileA).encode('utf-8').strip())
+    X_train,Y_train=pickle.loads(file_io.read_file_to_string(train_fileA),encoding='bytes')
 #     X_train,Y_train=pickle.load(StringIO(train_fileA),encoding='bytes')
     X_train=np.float64(X_train[:,1:])
     Y_train=np.float64(Y_train).reshape((X_train.shape[0],1))
 #     file_stream = file_io.FileIO(train_fileB, mode='r')
 #     X_trainB,Y_trainB=pickle.load(StringIO(train_fileB),encoding='bytes')
-    X_trainB,Y_trainB=pickle.loads(file_io.read_file_to_string(train_fileB).encode('utf-8').strip())
+    X_trainB,Y_trainB=pickle.loads(file_io.read_file_to_string(train_fileB),encoding='bytes')
 #     X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
     X_trainB=np.float64(X_trainB[:,1:])
     Y_trainB=np.float64(Y_trainB).reshape((X_trainB.shape[0],1))
