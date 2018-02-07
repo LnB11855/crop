@@ -9,7 +9,6 @@ from tensorflow.python.lib.io import file_io
 from datetime import datetime
 import pickle
 import time
-import sys
 
 
 
@@ -77,8 +76,8 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
     X_trainB=np.float64(X_trainB[:,1:])
     Y_trainB=np.float64(Y_trainB).reshape((X_trainB.shape[0],1))
-    X_train=np.concatenate((X_trainB,X_train),axis=1)
-    Y_train=np.concatenate((Y_trainB,Y_train),axis=1)
+    X_train=np.concatenate((X_trainB,X_train),axis=0)
+    Y_train=np.concatenate((Y_trainB,Y_train),axis=0)
     learning_rate=np.float64(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
