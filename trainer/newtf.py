@@ -150,7 +150,7 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
                 _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
                 _train_cost=sess.run(train_cost_summary, feed_dict={X: minibatch_X, Y: minibatch_Y})
                 writer.add_summary(_train_cost, epoch*num_minibatches+n_batch)
-                epoch_cost += np.squre(minibatch_cost) / num_minibatches
+                epoch_cost += np.square(minibatch_cost) / num_minibatches
             if epoch % 10 == 0:
                 coff = 0
                 print("Cost after epoch %i: %f " % (
