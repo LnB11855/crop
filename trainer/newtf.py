@@ -13,13 +13,10 @@ def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     m = X.shape[0]  # number of training examples
     mini_batches = []
     np.random.seed(seed)
-    permutation = list(np.random.permutation(m))
-    shuffled_X = X[permutation,:]
-    shuffled_Y = Y[permutation,:].reshape((m,Y.shape[1]))
     num_complete_minibatches = int(math.floor(m / mini_batch_size))
     for k in range(0, num_complete_minibatches):
-        mini_batch_X = shuffled_X[k * mini_batch_size: k * mini_batch_size + mini_batch_size,:]
-        mini_batch_Y = shuffled_Y[k * mini_batch_size: k * mini_batch_size + mini_batch_size,:]
+        mini_batch_X = X[k * mini_batch_size: k * mini_batch_size + mini_batch_size,:]
+        mini_batch_Y = Y[k * mini_batch_size: k * mini_batch_size + mini_batch_size,:]
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
 
@@ -75,6 +72,11 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     Y_trainB=np.float32(Y_trainB).reshape((X_trainB.shape[0],1))
     X_train=np.concatenate((X_trainB,X_train),axis=0)
     Y_train=np.concatenate((Y_trainB,Y_train),axis=0)
+    
+    permutation = list(np.random.permutation(X_train.shape[0]))
+    X_train = X_train[permutation,:]
+    Y_train = Y_train[permutation,:]
+    
     learning_rate=np.float32(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
@@ -143,18 +145,19 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
             seed = seed + 1
             # _,minicost = sess.run([optimizer, cost])
             minibatches = random_mini_batches(X_train, Y_train, batch_size, seed)
-            n_batch=0
+
             for minibatch in minibatches:
-                n_batch+=n_batch+1
+
                 (minibatch_X, minibatch_Y) = minibatch
                 _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
-                _train_cost=sess.run(train_cost_summary, feed_dict={X: minibatch_X, Y: minibatch_Y})
-                writer.add_summary(_train_cost, epoch*num_minibatches+n_batch)
+
                 epoch_cost += np.square(minibatch_cost) / num_minibatches
-            if epoch % 10 == 0:
-                coff = 0
-                print("Cost after epoch %i: %f " % (
-                epoch, np.sqrt(epoch_cost)))
+        if epoch % 10 == 0:
+            coff = 0
+            print("Cost after epoch %i: %f " % (
+            epoch, np.sqrt(epoch_cost)))
+            _train_cost=sess.run(train_cost_summary, feed_dict={X: X_train[0:500,:], Y: X_train[0:500,:]})
+            writer.add_summary(_train_cost, epoch)
 #                     _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
                     
             costs.append(epoch_cost)
