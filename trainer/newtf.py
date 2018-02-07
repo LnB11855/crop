@@ -79,10 +79,11 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     
     learning_rate=np.float32(learning_rate)
     batch_size=int(batch_size)
+    opt=int(opt)
     training_epochs=int(training_epochs)
     print(X_train.shape,Y_train.shape)
-    print("batch size: %i learning rate: %f " % (
-            batch_size, learning_rate)+train_fileA)
+    print("batch size: %i learning rate: %f optimizer: %i" % (
+            batch_size, learning_rate, opt)+train_fileA)
     np.random.seed(1)
     n_input =X_train.shape[1]
     print('number of features',n_input)
