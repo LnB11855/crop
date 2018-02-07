@@ -9,9 +9,6 @@ from tensorflow.python.lib.io import file_io
 from datetime import datetime
 import pickle
 import time
-
-
-
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     m = X.shape[0]  # number of training examples
     mini_batches = []
@@ -56,7 +53,7 @@ def multilayer_perceptron(x,weights,biases):
     out_layer = tf.matmul(A9, weights['out']) + biases['out']
     return out_layer
 def compute_cost(Z3, Y):
-    cost=tf.reduce_mean(tf.squared_difference(Z3, Y))
+    cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     return cost
 def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     
@@ -146,16 +143,19 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
             seed = seed + 1
             # _,minicost = sess.run([optimizer, cost])
             minibatches = random_mini_batches(X_train, Y_train, batch_size, seed)
+            n_batch=0
             for minibatch in minibatches:
+                n_batch+=n_batch+1
                 (minibatch_X, minibatch_Y) = minibatch
                 _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
-                epoch_cost += minibatch_cost / num_minibatches
+                writer.add_summary(minibatch_cost, epoch*num_minibatches+n_batch)
+                epoch_cost += np.squre(minibatch_cost) / num_minibatches
             if epoch % 10 == 0:
                 coff = 0
                 print("Cost after epoch %i: %f " % (
                 epoch, np.sqrt(epoch_cost)))
-                _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
-                writer.add_summary(_train_cost_summary, epoch)
+#                     _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
+                    
             costs.append(epoch_cost)
     writer.flush()
 
