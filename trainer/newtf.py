@@ -56,7 +56,7 @@ def multilayer_perceptron(x,weights,biases):
     out_layer = tf.matmul(A9, weights['out']) + biases['out']
     return out_layer
 def compute_cost(Z3, Y):
-    cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
+    cost=tf.reduce_mean(tf.squared_difference(Z3, Y))
     return cost
 def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     
@@ -68,17 +68,17 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     X_train,Y_train=pickle.load(file_stream,encoding='bytes')
 #     X_train,Y_train=pickle.loads(file_io.read_file_to_string(train_fileA))
 #     X_train,Y_train=pickle.load(StringIO(train_fileA),encoding='bytes')
-    X_train=np.float64(X_train[:,1:])
-    Y_train=np.float64(Y_train).reshape((X_train.shape[0],1))
+    X_train=np.float32(X_train[:,1:])
+    Y_train=np.float32(Y_train).reshape((X_train.shape[0],1))
     file_stream = file_io.FileIO(train_fileB, mode='rb')
 #     X_trainB,Y_trainB=pickle.load(StringIO(train_fileB),encoding='bytes')
 #     X_trainB,Y_trainB=pickle.loads(file_io.read_file_to_string(train_fileB))
     X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
-    X_trainB=np.float64(X_trainB[:,1:])
-    Y_trainB=np.float64(Y_trainB).reshape((X_trainB.shape[0],1))
+    X_trainB=np.float32(X_trainB[:,1:])
+    Y_trainB=np.float32(Y_trainB).reshape((X_trainB.shape[0],1))
     X_train=np.concatenate((X_trainB,X_train),axis=0)
     Y_train=np.concatenate((Y_trainB,Y_train),axis=0)
-    learning_rate=np.float64(learning_rate)
+    learning_rate=np.float32(learning_rate)
     batch_size=int(batch_size)
     training_epochs=int(training_epochs)
     print(X_train.shape,Y_train.shape)
@@ -152,8 +152,8 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
                 epoch_cost += minibatch_cost / num_minibatches
             if epoch % 1 == 0:
                 coff = 0
-                print("Cost after epoch %i: %f correlation coefficient: %f" % (
-                epoch, epoch_cost, coff ))
+                print("Cost after epoch %i: %f " % (
+                epoch, np.sqrt(epoch_cost))
                 _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train, Y: Y_train})
                 writer.add_summary(_train_cost_summary, epoch)
             costs.append(epoch_cost)
