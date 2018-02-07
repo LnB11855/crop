@@ -61,7 +61,7 @@ def compute_cost(Z3, Y):
     return cost
 def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
     
-    reload(sys)
+#     reload(sys)
     sys.setdefaultencoding("ISO-8859-1")
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     ops.reset_default_graph()
