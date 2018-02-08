@@ -155,15 +155,15 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
                 _, minibatch_cost = sess.run([optimizer, cost], feed_dict={X: minibatch_X, Y: minibatch_Y})
 
                 epoch_cost += np.square(minibatch_cost) / num_minibatches
-        if epoch % 10 == 0:
-            coff = 0
-            print("Cost after epoch %i: %f " % (
-            epoch, np.sqrt(epoch_cost)))
-            _train_cost=sess.run(train_cost_summary, feed_dict={X: X_train[0:100,:], Y: X_train[0:100,:]})
-            writer.add_summary(_train_cost, epoch)
-#                     _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
-                    
-            costs.append(epoch_cost)
+            if epoch % 10 == 0:
+                coff = 0
+                print("Cost after epoch %i: %f " % (
+                epoch, np.sqrt(epoch_cost)))
+                _train_cost=sess.run(train_cost_summary, feed_dict={X: X_train[0:100,:], Y: X_train[0:100,:]})
+                writer.add_summary(_train_cost, epoch)
+    #                     _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
+
+                costs.append(epoch_cost)
     writer.flush()
 
 
