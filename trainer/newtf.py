@@ -159,7 +159,7 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
                 coff = 0
                 print("Cost after epoch %i: %f " % (
                 epoch, np.sqrt(epoch_cost)))
-                _train_cost=sess.run(train_cost_summary, feed_dict={X: X_train[0:100,:], Y: X_train[0:100,:]})
+                _train_cost=sess.run(train_cost_summary, feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
                 writer.add_summary(_train_cost, epoch)
     #                     _train_cost_summary=sess.run(train_cost_summary,feed_dict={X: X_train[0:100,:], Y: Y_train[0:100,:]})
 
