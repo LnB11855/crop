@@ -6,7 +6,7 @@ trainingInput:
   masterType: large_model
   workerType: complex_model_l_gpu
   parameterServerType: complex_model_l_gpu
-  workerCount: 1
-  parameterServerCount: 1
+  workerCount: 4
+  parameterServerCount: 4
   runtimeVersion: "1.4"
   pythonVersion: "3.5"
