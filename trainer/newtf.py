@@ -26,7 +26,6 @@ def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
         mini_batch_Y = Y[num_complete_minibatches * mini_batch_size: m,:]
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
-
     return mini_batches
 def multilayer_perceptron(x,weights,biases):
     layer_1 = tf.add(tf.matmul(x, weights['h1']), biases['b1'])
@@ -60,19 +59,15 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     ops.reset_default_graph()
     file_stream = file_io.FileIO(train_fileA, mode='rb')
     X_train,Y_train=pickle.load(file_stream,encoding='bytes')
-#     X_train,Y_train=pickle.loads(file_io.read_file_to_string(train_fileA))
-#     X_train,Y_train=pickle.load(StringIO(train_fileA),encoding='bytes')
     X_train=np.float32(X_train[:,1:])
     Y_train=np.float32(Y_train).reshape((X_train.shape[0],1))
-    file_stream = file_io.FileIO(train_fileB, mode='rb')
-#     X_trainB,Y_trainB=pickle.load(StringIO(train_fileB),encoding='bytes')
-#     X_trainB,Y_trainB=pickle.loads(file_io.read_file_to_string(train_fileB))
-    X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
-    X_trainB=np.float32(X_trainB[:,1:])
-    Y_trainB=np.float32(Y_trainB).reshape((X_trainB.shape[0],1))
-    X_train=np.concatenate((X_trainB,X_train),axis=0)
-    Y_train=np.concatenate((Y_trainB,Y_train),axis=0)
-    
+    if train_fileB：
+        file_stream = file_io.FileIO(train_fileB, mode='rb')
+        X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
+        X_trainB=np.float32(X_trainB[:,1:])
+        Y_trainB=np.float32(Y_trainB).reshape((X_trainB.shape[0],1))
+        X_train=np.concatenate((X_trainB,X_train),axis=0)
+        Y_train=np.concatenate((Y_trainB,Y_train),axis=0)   
     permutation = list(np.random.permutation(X_train.shape[0]))
     X_train = X_train[permutation,:]
     Y_train = Y_train[permutation,:]
