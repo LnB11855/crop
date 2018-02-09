@@ -4,8 +4,8 @@ trainingInput:
   #masterType: standard_gpu
   #masterType: large_model 
   masterType: large_model
-  workerType: complex_model_l_gpu
-  parameterServerType: complex_model_l_gpu
+  workerType: standard_gpu
+  parameterServerType: standard_gpu
   workerCount: 1
   parameterServerCount: 1
   runtimeVersion: "1.4"
