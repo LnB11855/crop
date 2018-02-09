@@ -61,7 +61,7 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     X_train,Y_train=pickle.load(file_stream,encoding='bytes')
     X_train=np.float32(X_train[:,1:])
     Y_train=np.float32(Y_train).reshape((X_train.shape[0],1))
-    if str(train_fileB):
+    if str(train_fileB)!='nofile':
         file_stream = file_io.FileIO(train_fileB, mode='rb')
         X_trainB,Y_trainB=pickle.load(file_stream,encoding='bytes')
         X_trainB=np.float32(X_trainB[:,1:])
