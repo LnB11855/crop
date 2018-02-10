@@ -9,9 +9,9 @@ trainingInput:
   #workerCount: 1
   #parameterServerCount: 1
   masterType: large_model
-  #workerType: complex_model_m_gpu
+  workerType: complex_model_m_gpu
   #parameterServerType: large_model
-  #workerCount: 1
+  workerCount: 1
   #parameterServerCount: 1
   runtimeVersion: "1.4"
   pythonVersion: "3.5"
