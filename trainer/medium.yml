@@ -8,7 +8,7 @@ trainingInput:
   #parameterServerType: standard_gpu
   #workerCount: 1
   #parameterServerCount: 1
-  masterType: large_model
+  masterType: complex_model_l
   workerType: standard_gpu
   #parameterServerType: large_model
   workerCount: 1
