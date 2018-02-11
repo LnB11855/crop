@@ -8,10 +8,10 @@ trainingInput:
   #parameterServerType: standard_gpu
   #workerCount: 1
   #parameterServerCount: 1
-  masterType: large_model
-  workerType: standard_gpu
+  masterType: complex_model_l_gpu
+  #workerType: complex_model_l_gpu
   #parameterServerType: large_model
-  workerCount: 3
+  #workerCount: 3
   #parameterServerCount: 1
   runtimeVersion: "1.4"
   pythonVersion: "3.5"
