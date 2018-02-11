@@ -8,8 +8,8 @@ trainingInput:
   #parameterServerType: standard_gpu
   #workerCount: 1
   #parameterServerCount: 1
-  masterType: complex_model_m_gpu
-  #workerType: complex_model_l_gpu
+  masterType: complex_model_l
+  workerType: complex_model_m_gpu
   #parameterServerType: large_model
   #workerCount: 3
   #parameterServerCount: 1
