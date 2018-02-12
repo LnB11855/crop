@@ -206,7 +206,7 @@ if __name__ == '__main__':
         required=True
        
     )
-        parser.add_argument(
+    parser.add_argument(
         '--num-fea',
         help='number of features',
         required=True
