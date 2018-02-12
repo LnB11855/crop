@@ -9,6 +9,7 @@ from tensorflow.python.lib.io import file_io
 from datetime import datetime
 import pickle
 import time
+from sklearn.feature_selection import mutual_info_regression as mi
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     m = X.shape[0]  # number of training examples
     mini_batches = []
@@ -51,7 +52,7 @@ def multilayer_perceptron(x,weights,biases):
 def compute_cost(Z3, Y):
     cost=tf.sqrt(tf.reduce_mean(tf.squared_difference(Z3, Y)))
     return cost
-def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,**args):
+def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='./tmp/crop-challenge', training_epochs=100,batch_size = 100,learning_rate = 0.001,opt=1,num_fea,**args):
     
 #     reload(sys)
 #     sys.setdefaultencoding("ISO-8859-1")
@@ -71,7 +72,10 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     permutation = list(np.random.permutation(X_train.shape[0]))
     X_train = X_train[permutation,:]
     Y_train = Y_train[permutation,:]
-    
+    L=mi(X,Y,n_neighbors=6)
+    index_muinfo=np.argsort(-L)
+    X_train=X_train[:,index_muinfo]
+    X_train=X_train[:,0:int(num_fea)]
     learning_rate=np.float32(learning_rate)
     batch_size=int(batch_size)
     opt=int(opt)
@@ -199,6 +203,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--opt',
         help='choice of optimizer',
+        required=True
+       
+    )
+        parser.add_argument(
+        '--num-fea',
+        help='number of features',
         required=True
        
     )
