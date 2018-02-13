@@ -72,7 +72,7 @@ def train_model(train_fileA='5000test.mat',train_fileB='5000test.mat', job_dir='
     permutation = list(np.random.permutation(X_train.shape[0]))
     X_train = X_train[permutation,:]
     Y_train = Y_train[permutation,:]
-    L=mi(X,Y,n_neighbors=6)
+    L=mi(X_train,Y_train,n_neighbors=100)
     index_muinfo=np.argsort(-L)
     X_train=X_train[:,index_muinfo]
     X_train=X_train[:,0:int(num_fea)]
