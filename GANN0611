@@ -1,0 +1,324 @@
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+from datetime import datetime
+import pickle
+import copy
+plt.ion() # interactive mode on
+axisx1=[]
+axisx2=[]
+axisy1=[]
+axisy2=[]
+line, = plt.plot(axisx1,axisy1)  # plot the data and specify the 2d line
+# line2, = plt.plot(axisx2,axisy2,color = 'red', linestyle = '--')
+ax = plt.gca() # get most of the figure elements
+# plt.legend(handles = [line, line2,], labels = ['all', 'average '],loc=1)
+# plt.legend(handles =line, labels ='training',loc=1)
+ # pause to show the figure
+with open('D:\challenge\Crop\XYgcd33_5000.pickle', 'rb') as handle:
+    X_train,Y_train= pickle.load(handle)
+
+
+n_pop=100
+n_elite=n_pop*0.1
+n_output = 1
+model_mean=0
+model_sd=1
+num_iteration=120
+batch_size = 5000
+n_sample=X_train.shape[0]
+count_update=np.zeros((n_pop,2))
+n_weights=20
+n_input = X_train.shape[1]
+n_hidden_1 = 64  # 1st layer number of neurons
+n_hidden_2 = 32  # 2nd layer number of neurons
+n_hidden_3 = 32  # 2nd layer number of neurons
+n_hidden_4 = 32  # 2nd layer number of neurons
+n_hidden_5 = 32  # 2nd layer number of neurons
+n_hidden_6 = 32  # 2nd layer number of neurons
+n_hidden_7 = 32  # 2nd layer number of neurons
+n_hidden_8 = 32  # 2nd layer number of neurons
+n_hidden_9 = 32  # 2nd layer number of neurons
+n0=int(0)
+n1 = n_input * n_hidden_1
+n2 = n1 + n_hidden_1 * n_hidden_2
+n3 = n2 + n_hidden_2 * n_hidden_3
+n4 = n3 + n_hidden_3 * n_hidden_4
+n5 = n4 + n_hidden_4 * n_hidden_5
+n6 = n5 + n_hidden_5 * n_hidden_6
+n7 = n6 + n_hidden_6 * n_hidden_7
+n8 = n7 + n_hidden_7 * n_hidden_8
+n9 = n8 + n_hidden_8 * n_hidden_9
+n10 = n9 + n_output * n_hidden_9
+n11 = n10 + n_hidden_1
+n12 = n11 + n_hidden_2
+n13 = n12 + n_hidden_3
+n14 = n13 + n_hidden_4
+n15 = n14 + n_hidden_5
+n16 = n15 + n_hidden_6
+n17 = n16 + n_hidden_7
+n18 = n17 + n_hidden_8
+n19 = n18 + n_hidden_9
+n20 = n19 + n_output
+fit=np.zeros((n_pop,1))
+n_para=(n_input+1)*n_hidden_1+(n_hidden_1+1)*n_hidden_2+(n_hidden_2+1)*n_hidden_3+(n_hidden_3+1)*n_hidden_4\
+       +(n_hidden_4+1)*n_hidden_5+(n_hidden_5+1)*n_hidden_6+(n_hidden_6+1)*n_hidden_7+(n_hidden_7+1)*n_hidden_8\
+       +(n_hidden_8+1)*n_hidden_9+(n_hidden_9+1)*n_output
+#initialize xavier
+def ini(n_pop,n_para):
+    # pop = np.random.randn(n_pop, n_para)
+    pop = np.random.normal(0,0.1,(n_pop, n_para))
+    count = 0
+    pop[:,0:n_input * n_hidden_1]=np.random.uniform(-np.sqrt(6/(n_input+n_hidden_1)), np.sqrt(6/(n_input+n_hidden_1)),(n_pop,n_input * n_hidden_1))
+    count += n_input * n_hidden_1
+    pop[:, count:count + n_hidden_1 * n_hidden_2] = np.random.uniform(-np.sqrt(6 / (n_hidden_2 + n_hidden_1)),
+                                                       np.sqrt(6 / (n_hidden_2 + n_hidden_1)), (n_pop,n_hidden_2 * n_hidden_1))
+    count += n_hidden_1 * n_hidden_2
+    pop[:, count:count + n_hidden_2 * n_hidden_3] = np.random.uniform(-np.sqrt(6 / (n_hidden_2 + n_hidden_3)),
+                                                                      np.sqrt(6 / (n_hidden_2 + n_hidden_3)),
+                                                                      (n_pop,n_hidden_2 * n_hidden_3))
+    count += n_hidden_3 * n_hidden_2
+    pop[:, count:count + n_hidden_4 * n_hidden_3] = np.random.uniform(-np.sqrt(6 / (n_hidden_4 + n_hidden_3)),
+                                                                      np.sqrt(6 / (n_hidden_4 + n_hidden_3)),
+                                                                      (n_pop,n_hidden_4 * n_hidden_3))
+    count += n_hidden_3 * n_hidden_4
+    pop[:, count:count + n_hidden_4 * n_hidden_5] = np.random.uniform(-np.sqrt(6 / (n_hidden_4 + n_hidden_5)),
+                                                                      np.sqrt(6 / (n_hidden_4 + n_hidden_5)),
+                                                                      (n_pop,n_hidden_4 * n_hidden_5))
+    count += n_hidden_5 * n_hidden_4
+    pop[:, count:count + n_hidden_6 * n_hidden_5] = np.random.uniform(-np.sqrt(6 / (n_hidden_6 + n_hidden_5)),
+                                                                      np.sqrt(6 / (n_hidden_6 + n_hidden_5)),
+                                                                      (n_pop,n_hidden_6 * n_hidden_5))
+    count += n_hidden_5 * n_hidden_6
+    pop[:, count:count + n_hidden_6 * n_hidden_7] = np.random.uniform(-np.sqrt(6 / (n_hidden_6 + n_hidden_7)),
+                                                                      np.sqrt(6 / (n_hidden_6 + n_hidden_7)),
+                                                                      (n_pop,n_hidden_6 * n_hidden_7))
+    count += n_hidden_7 * n_hidden_6
+    pop[:, count:count + n_hidden_8 * n_hidden_7] = np.random.uniform(-np.sqrt(6 / (n_hidden_8 + n_hidden_7)),
+                                                                      np.sqrt(6 / (n_hidden_8 + n_hidden_7)),
+                                                                      (n_pop,n_hidden_8 * n_hidden_7))
+    count += n_hidden_7 * n_hidden_8
+    pop[:, count:count + n_hidden_8 * n_hidden_9] = np.random.uniform(-np.sqrt(6 / (n_hidden_8 + n_hidden_9)),
+                                                                      np.sqrt(6 / (n_hidden_8 + n_hidden_9)),
+                                                                      (n_pop,n_hidden_8 * n_hidden_9))
+    count += n_hidden_9 * n_hidden_8
+    pop[:, count:count + n_output * n_hidden_9] = np.random.uniform(-np.sqrt(6 / (n_output + n_hidden_9)),
+                                                                      np.sqrt(6 / (n_output + n_hidden_9)),
+                                                                    (n_pop,n_output * n_hidden_9))
+    count += n_hidden_9 * n_output
+    return pop
+def fitness(pop,ind,X,Y):
+    w1=  pop[ind[0],0:n1].reshape(n_input, n_hidden_1)
+    w2 = pop[ind[2],n1:n2].reshape(n_hidden_1, n_hidden_2)
+    w3 = pop[ind[4],n2:n3].reshape(n_hidden_2, n_hidden_3)
+    w4 = pop[ind[6],n3:n4].reshape(n_hidden_3, n_hidden_4)
+    w5 = pop[ind[8],n4:n5].reshape(n_hidden_4, n_hidden_5)
+    w6 = pop[ind[10],n5:n6].reshape(n_hidden_5, n_hidden_6)
+    w7 = pop[ind[12],n6:n7].reshape(n_hidden_6, n_hidden_7)
+    w8 = pop[ind[14],n7:n8].reshape(n_hidden_7, n_hidden_8)
+    w9 = pop[ind[16],n8:n9].reshape(n_hidden_8, n_hidden_9)
+    wout = pop[ind[18],n9:n10].reshape(n_hidden_9, n_output)
+    b1= pop[ind[1],n10:n11].reshape(n_hidden_1, )
+    b2 = pop[ind[3],n11:n12].reshape(n_hidden_2, )
+    b3 = pop[ind[5],n12:n13].reshape(n_hidden_3, )
+    b4 = pop[ind[7],n13:n14].reshape(n_hidden_4, )
+    b5 = pop[ind[9],n14:n15].reshape(n_hidden_5, )
+    b6 = pop[ind[11],n15:n16].reshape(n_hidden_6, )
+    b7 = pop[ind[13],n16:n17].reshape(n_hidden_7, )
+    b8 = pop[ind[15],n17:n18].reshape(n_hidden_8, )
+    b9 = pop[ind[17],n18:n19].reshape(n_hidden_9, )
+    bout = pop[ind[19], n19:n20].reshape(n_output, )
+    Z1 = np.dot(X, w1) + b1
+    A1 = np.tanh(Z1)
+    Z2 = np.dot(A1, w2) + b2
+    A2 = np.tanh(Z2)
+    Z3 = np.dot(A2, w3) + b3
+    A3 = np.tanh(Z3)
+    Z4 = np.dot(A3, w4) + b4
+    A4 = np.tanh(Z4)
+    Z5 = np.dot(A4, w5) + b5
+    A5 = np.tanh(Z5)
+    Z6 = np.dot(A5, w6) + b6
+    A6 = np.tanh(Z6)
+    Z7 = np.dot(A6, w7) + b7
+    A7 = np.tanh(Z7)
+    Z8 = np.dot(A7, w8) + b8
+    A8 = np.tanh(Z8)
+    Z9 = np.dot(A8, w9) + b9
+    A9 = np.tanh(Z9)
+    out_layer = np.dot(A9, wout)+bout
+    fit=np.sqrt(np.mean((out_layer-Y)**2))
+    return fit
+def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
+    m = X.shape[0]  # number of training examples
+    mini_batches = []
+    np.random.seed(seed)
+    permutation = list(np.random.permutation(m))
+    shuffled_X = X[permutation, :]
+    shuffled_Y = Y[permutation].reshape((X.shape[0],1))
+    num_complete_minibatches = int(math.floor(m / mini_batch_size))
+    for k in range(0, num_complete_minibatches):
+        mini_batch_X = shuffled_X[k * mini_batch_size: k * mini_batch_size + mini_batch_size, :]
+        mini_batch_Y = shuffled_Y[k * mini_batch_size: k * mini_batch_size + mini_batch_size,:]
+        mini_batch = (mini_batch_X, mini_batch_Y)
+        mini_batches.append(mini_batch)
+
+    # Handling the end case (last mini-batch < mini_batch_size)
+    # if m % mini_batch_size != 0:
+    #     mini_batch_X = shuffled_X[num_complete_minibatches * mini_batch_size: m, :]
+    #     mini_batch_Y = shuffled_Y[num_complete_minibatches * mini_batch_size: m,:]
+    #     mini_batch = (mini_batch_X, mini_batch_Y)
+    #     mini_batches.append(mini_batch)
+
+    return mini_batches
+def sor(A,B):
+    index_A=np.argsort(A,0)
+    A=A[index_A,:].reshape((n_pop,1))
+    B=B[index_A,:].reshape((n_pop,n_weights))
+    return A, B
+pop=ini(n_pop,n_para)
+print('max of coefficients %f min of coefficients  %f' % (np.max(pop), np.min(pop)))
+#-------------------------------Global search----------------------------------------------------
+combi=np.random.randint(0,n_pop, size=[n_pop,n_weights])
+combi_best=combi[0,:]
+fit_best=10000
+for i in range(n_pop):
+    fit[i,0]=fitness(pop,combi[i,:],X_train[0:batch_size,],Y_train[0:batch_size])
+fit, combi = sor(fit, combi)
+print(fit[0,0])
+for iter in range(num_iteration):
+    for j in range(n_pop):
+        if j<n_elite:
+            newcombi= copy.deepcopy(combi[j, :])
+            newcombi[np.random.randint(n_weights)]=np.random.randint(n_pop)
+            newfit=fitness(pop,newcombi,X_train[0:batch_size,],Y_train[0:batch_size])
+            if newfit<fit[j,0]:
+                count_update[j,0]=count_update[j,0]+1
+                count_update[j,1] = count_update[j,1] + fit[j,0]-newfit
+                combi[j, :]=newcombi
+                fit[j,0]=newfit
+        elif j>n_pop-n_elite:
+            point_cut=np.random.randint(n_weights-5,size=2)
+            parents=np.random.randint(n_pop*0.1,size=2)
+            newcombi=copy.deepcopy(combi[j,:])
+            # if point_cut[0]<point_cut[1]:
+            #     newcombi[point_cut[0]:point_cut[1]]=copy.deepcopy(combi[parents[1],point_cut[0]:point_cut[1]])
+            # else:
+            #     newcombi[point_cut[1]:point_cut[0]] = copy.deepcopy(combi[parents[1], point_cut[1]:point_cut[0]])
+            newcombi[point_cut[0]:point_cut[0]+5] = copy.deepcopy(combi[parents[0],point_cut[0]:point_cut[0]+5])
+            if np.random.random()<0.1:
+                newcombi[np.random.randint(n_weights)] = np.random.randint(n_pop)
+            newfit = fitness(pop, newcombi, X_train[0:batch_size, ], Y_train[0:batch_size])
+            if newfit<fit[j,0]:
+                count_update[j, 0] = count_update[j, 0] + 1
+                count_update[j, 1] = count_update[j, 1] + fit[j, 0] - newfit
+                combi[j, :]=newcombi
+                fit[j,0]=newfit
+
+        else:
+            point_cut=np.random.randint(n_weights,size=4)
+            parents=np.random.randint(n_elite,size=4)
+            newcombi=copy.deepcopy(combi[j,:])
+            newcombi[point_cut[0]]=copy.deepcopy(combi[parents[0],point_cut[0]])
+            #newcombi[point_cut[1]] =copy.deepcopy( combi[parents[1], point_cut[1]])
+
+            if np.random.random()<0.1:
+                newcombi[np.random.randint(n_weights)] = np.random.randint(n_pop)
+            newfit = fitness(pop, newcombi, X_train[0:batch_size, ], Y_train[0:batch_size])
+            if newfit<fit[j,0]:
+                count_update[j,0]=count_update[j,0]+1
+                count_update[j,1] = count_update[j,1] + fit[j,0]-newfit
+                combi[j, :]=newcombi
+                fit[j,0]=newfit
+
+
+    fit, combi = sor(fit, combi)
+    if iter%10==0:
+        print(iter)
+    if fit[0,0]<fit_best:
+        fit_best=fit[0,0]
+        combi_best=combi[0,:]
+        print((fit_best,iter))
+
+pop_pop=copy.deepcopy(pop)
+def fitness_layer_evolve(num_layer,ind,X,Y,fit_indi):
+    w1=  pop[ind[0],n0:n1].reshape(n_input, n_hidden_1)
+    w2 = pop[ind[2],n1:n2].reshape(n_hidden_1, n_hidden_2)
+    w3 = pop[ind[4],n2:n3].reshape(n_hidden_2, n_hidden_3)
+    w4 = pop[ind[6],n3:n4].reshape(n_hidden_3, n_hidden_4)
+    w5 = pop[ind[8],n4:n5].reshape(n_hidden_4, n_hidden_5)
+    w6 = pop[ind[10],n5:n6].reshape(n_hidden_5, n_hidden_6)
+    w7 = pop[ind[12],n6:n7].reshape(n_hidden_6, n_hidden_7)
+    w8 = pop[ind[14],n7:n8].reshape(n_hidden_7, n_hidden_8)
+    w9 = pop[ind[16],n8:n9].reshape(n_hidden_8, n_hidden_9)
+    w10 = pop[ind[18],n9:n10].reshape(n_hidden_9, n_output)
+    b1= pop[ind[1],n10:n11].reshape(n_hidden_1, )
+    b2 = pop[ind[3],n11:n12].reshape(n_hidden_2, )
+    b3 = pop[ind[5],n12:n13].reshape(n_hidden_3, )
+    b4 = pop[ind[7],n13:n14].reshape(n_hidden_4, )
+    b5 = pop[ind[9],n14:n15].reshape(n_hidden_5, )
+    b6 = pop[ind[11],n15:n16].reshape(n_hidden_6, )
+    b7 = pop[ind[13],n16:n17].reshape(n_hidden_7, )
+    b8 = pop[ind[15],n17:n18].reshape(n_hidden_8, )
+    b9 = pop[ind[17],n18:n19].reshape(n_hidden_9, )
+    b10 = pop[ind[19], n19:n20].reshape(n_output, )
+    if num_layer%2==0:
+        a =int(num_layer/2+1)
+        perturb=np.random.normal(model_mean, 0.02*model_sd, eval('w'+str(a)+'.shape'))
+        code='w'+str(a)+'=w'+str(a)+'+perturb'
+        ldict = locals()
+        exec(code, globals(), ldict)
+    else:
+        a=int((num_layer+1)/2)
+        perturb=np.random.normal(model_mean, 0.02*model_sd, eval('b'+str(a)+'.shape'))
+        ldict = locals()
+        exec('b'+str(a)+'=b'+str(a)+'+perturb', globals(), ldict)
+
+    # w1=w1+np.random.normal(model_mean, 0.02*model_sd, w1.shape)
+    Z1 = np.dot(X, ldict['w1']) +ldict['b1']
+    A1 = np.tanh(Z1)
+    Z2 = np.dot(A1, ldict['w2']) + ldict['b2']
+    A2 = np.tanh(Z2)
+    Z3 = np.dot(A2, ldict['w3']) + ldict['b3']
+    A3 = np.tanh(Z3)
+    Z4 = np.dot(A3, ldict['w4']) + ldict['b4']
+    A4 = np.tanh(Z4)
+    Z5 = np.dot(A4, ldict['w5']) + ldict['b5']
+    A5 = np.tanh(Z5)
+    Z6 = np.dot(A5, ldict['w6']) + ldict['b6']
+    A6 = np.tanh(Z6)
+    Z7 = np.dot(A6, ldict['w7']) + ldict['b7']
+    A7 = np.tanh(Z7)
+    Z8 = np.dot(A7, ldict['w8']) + ldict['b8']
+    A8 = np.tanh(Z8)
+    Z9 = np.dot(A8, ldict['w9']) + ldict['b9']
+    A9 = np.tanh(Z9)
+    out_layer = np.dot(A9, ldict['w10'])+ldict['b10']
+    fit_evolve=np.sqrt(np.mean((out_layer-Y)**2))
+    if fit_evolve<fit_indi:
+        if num_layer % 2 == 0:
+            exec('b=w'+str(a)+'.size', globals(), ldict)
+
+            d='n'+str(a)
+            c='n'+str(a-1)
+            exec('pop[ind[num_layer], '+c+':'+d+']=w'+str(a)+'.reshape(b,)', globals(), ldict)
+        else:
+            exec('b=b'+str(a)+'.size', globals(), ldict)
+            d='n'+str(a+10)
+            c='n'+str(a-1+10)
+            exec('pop[ind[num_layer], '+c+':'+d+']=b'+str(a)+'.reshape(b,)', globals(), ldict)
+        # pop[ind[0], n0:n1]=w1.reshape(w1.size,)
+    return fit_evolve
+for iter in range(num_iteration):
+    for i in range(n_weights):
+        #pop=pop+np.random.normal(model_mean, 0.02*model_sd, pop.shape)
+        #newfit = fitness(pop, combi_best, X_train[0:batch_size, ], Y_train[0:batch_size])
+        newfit=fitness_layer_evolve(i,combi_best,X_train[0:batch_size, ], Y_train[0:batch_size],fit_best)
+
+        if newfit<fit_best:
+            fit_best = newfit
+            print((fit_best, iter))
+            pop_pop = copy.deepcopy(pop)
+
+
+
