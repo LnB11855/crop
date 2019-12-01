@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#SBATCH --time=3:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --mem=1G
+#SBATCH --job-name="revise1"
+#SBATCH --mail-user=luningbi@iastate.edu
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END
+
+module load singularity
+singularity exec machine-learning_latest.sif python minist_keras_ga.py --batch-size 1000 --epochs 500 --var-base-req 0.997 --var-shrin 0.003
