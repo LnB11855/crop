@@ -93,7 +93,7 @@ def train_model(batch_size=1000,epochs=100):
         print('Test loss:',record[i,2])
         print('Test accuracy',record[i,3])
     df = pd.DataFrame(record, columns= ['train_loss', 'train_acc','test_loss', 'test_acc'])
-    df.to_csv ('minist_keras_10000.csv', index = None, header=True)
+    df.to_csv ('minist_keras_10000'+str(epochs)+'.csv', index = None, header=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
