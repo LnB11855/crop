@@ -32,6 +32,8 @@ def random_mini_batches(X, Y, mini_batch_size=100, seed=0):
     return mini_batches
 def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
     num_classes = 10
+    print('var1:',var_base_req)
+    print('var2:',var_shrin)
     # input image dimensions
     img_rows, img_cols = 28, 28
 
@@ -118,9 +120,6 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
                     flag_add = 0
             count_batches = count_batches +1
             score = model.evaluate(x_train, y_train, verbose=0)
-            print('Train loss:', score[0])
-            print('Train accuracy:', score[1])
-            print('count_update:', count_update)
             # with K.Session() as sess:
             #
             #     outputTensor = model.output  # Or model.layers[index].output
@@ -129,6 +128,11 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
 
         record[i , 0], record[i , 1] = model.evaluate(x_train,y_train,verbose=0)
         record[i, 2], record[i , 3] = model.evaluate(x_test,   y_test,verbose=0)
+        print('Train loss:', record[i,0])
+        print('Train accuracy:', record[i,1])
+	print('Test loss:',record[i,2])
+	print('Test accuracy',record[i,3])
+        print('count_update:', count_update)
     df = pd.DataFrame(record, columns= ['train_loss', 'train_acc','test_loss', 'test_acc'])
     df.to_csv ('minist_ga_10000'+str(var_base_req)+str(var_shrin)+'.csv', index = None, header=True)
 
