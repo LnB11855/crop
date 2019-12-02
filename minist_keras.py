@@ -29,7 +29,7 @@ def random_mini_batches(X, Y, mini_batch_size=100, seed=0):
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
     return mini_batches
-def train_model(batch_size=1000,epochs=100):
+def train_model(batch_size=1000,epochs=100,num_samples=10000):
     num_classes = 10
     # input image dimensions
     img_rows, img_cols = 28, 28
@@ -50,13 +50,13 @@ def train_model(batch_size=1000,epochs=100):
     x_test = x_test.astype('float32')
     x_train /= 255
     x_test /= 255
-    x_train=x_train[0:10000]
+    x_train=x_train[0:num_samples]
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
 
     # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes)[0:10000]
+    y_train = keras.utils.to_categorical(y_train, num_classes)[0:num_samples]
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
     model = Sequential()
@@ -93,7 +93,7 @@ def train_model(batch_size=1000,epochs=100):
         print('Test loss:',record[i,2])
         print('Test accuracy',record[i,3])
     df = pd.DataFrame(record, columns= ['train_loss', 'train_acc','test_loss', 'test_acc'])
-    df.to_csv ('minist_keras_10000'+str(epochs)+'.csv', index = None, header=True)
+    df.to_csv ('minist_keras'+str(num_samples)+str(epochs)+'.csv', index = None, header=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -111,6 +111,12 @@ if __name__ == '__main__':
         required=True
     )
 
+    parser.add_argument(
+        '--num-samples',
+        help='10000-60000',
+        type=int,
+        required=True
+    )
 
     args = parser.parse_args()
     arguments = args.__dict__
