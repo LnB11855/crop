@@ -30,10 +30,10 @@ def random_mini_batches(X, Y, mini_batch_size=100, seed=0):
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
     return mini_batches
-def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
+def train_model(batch_size=1000,epochs=1005,num_samples=10000,var1=0.99,var2=0.01):
     num_classes = 10
-    print('var1:',var_base_req)
-    print('var2:',var_shrin)
+    print('var1:',var1)
+    print('var2:',var2)
     # input image dimensions
     img_rows, img_cols = 28, 28
 
@@ -53,13 +53,13 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
     x_test = x_test.astype('float32')
     x_train /= 255
     x_test /= 255
-    x_train=x_train[0:10000]
+    x_train=x_train[0:num_samples]
     print('x_train shape:', x_train.shape)
     print(x_train.shape[0], 'train samples')
     print(x_test.shape[0], 'test samples')
 
     # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes)[0:10000]
+    y_train = keras.utils.to_categorical(y_train, num_classes)[0:num_samples]
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
     model = Sequential()
@@ -91,7 +91,7 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
     len_batch=len(minibatches)
     record=np.zeros((epochs,4))
 
-
+    count_non_update=0
     for i in range(epochs):
         print(i,'th iteration------------------------------------------------')
         count_batches =0
@@ -109,7 +109,7 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
                 b[j]=b[j]+adding_random
                 model.set_weights(b)
                 score_new=model.evaluate(minibatch_X, minibatch_Y, verbose=0)[0]
-                if score_new<score_old*(var_base_req+i*var_shrin/epochs):
+                if score_new<score_old*(var1+i*var2/epochs):
                     a=copy.deepcopy(b)
                     score_old=score_new
                     count_update=count_update+1
@@ -130,11 +130,12 @@ def train_model(batch_size=1000,epochs=100,var_base_req=0.99,var_shrin=0.015):
         record[i, 2], record[i , 3] = model.evaluate(x_test,   y_test,verbose=0)
         print('Train loss:', record[i,0])
         print('Train accuracy:', record[i,1])
-	print('Test loss:',record[i,2])
-	print('Test accuracy',record[i,3])
+        print('Test loss:',record[i,2])
+        print('Test accuracy',record[i,3])
         print('count_update:', count_update)
-    df = pd.DataFrame(record, columns= ['train_loss', 'train_acc','test_loss', 'test_acc'])
-    df.to_csv ('minist_ga_10000'+str(var_base_req)+str(var_shrin)+'.csv', index = None, header=True)
+        if i>999 and i%500==0:
+            df = pd.DataFrame(record, columns= ['train_loss', 'train_acc','test_loss', 'test_acc'])
+            df.to_csv('minist_ga'+str(i)+str(num_samples)+str(var1)+str(var2)+'.csv', index = None, header=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -152,13 +153,19 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--var-base-req',
+        '--num-samples',
+        help='epochs',
+        type=int,
+        required=True
+    )
+    parser.add_argument(
+        '--var1',
         help='var-base-req',
         type=float,
         required=True
     )
     parser.add_argument(
-        '--var-shrin',
+        '--var2',
         help='var_shrin',
         type=float,
         required=True
