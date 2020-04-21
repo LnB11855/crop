@@ -37,11 +37,15 @@ print(check_output(["ls", "D:/2ndPlant/crowdai_plantvillage"]).decode("utf8"))
 class DCGAN():
     def __init__(self):
         # Input shape
-        self.img_rows = 128
-        self.img_cols = 128
+        global img_size
+        global noise
+        global var1
+        self.epi=var1
+        self.img_rows = img_size
+        self.img_cols = img_size
         self.channels = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.latent_dim = 1000
+        self.latent_dim = noise
         self.num_classes = 38
         self.X_train, self.x_valid,self.y_train,self.y_valid=reader();
         optimizer = Adam(0.0002, 0.5)
@@ -71,8 +75,8 @@ class DCGAN():
         # Trains the generator to fool the discriminator
         self.combined = Model([z, label], [valid, target_label])
 
-        def custom_objective(y_true, y_pred):
-            epi = 0.22
+        def custom_objective(self,y_true, y_pred):
+            epi = self.epi
 
             # out = -epi+(1-epi)*K.sparse_categorical_crossentropy(y_true, y_pred)
             out = -epi * (K.mean(K.log(y_pred + 0.00000001))) + (1 - epi) * K.sparse_categorical_crossentropy(y_true,
@@ -102,7 +106,7 @@ class DCGAN():
         model.summary()
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
-        label_embedding = Flatten()(Embedding(self.num_classes, 1000)(label))
+        label_embedding = Flatten()(Embedding(self.num_classes, self.latent_dim)(label))
         model_input = multiply([noise, label_embedding])
         img = model(model_input)
         return Model([noise, label], img)
@@ -442,53 +446,50 @@ def reader():
 
 
 if __name__ == '__main__':
+parser = argparse.ArgumentParser()
+    # Input Arguments
+    parser.add_argument(
+        '--epochs',
+        help='epochs',
+        type=int,
+        required=True
+    )
+        parser.add_argument(
+        '--batch',
+        help='batchsize',
+        type=int,
+        required=True
+    )
+    parser.add_argument(
+        '--interval',
+        help='interval',
+        type=int,
+        required=True
+    )
+    parser.add_argument(
+        '--img',
+        help='img-size',
+        type=int,
+        required=True
+    )
+    parser.add_argument(
+        '--noise',
+        help='latent_dim',
+        type=float,
+        required=True
+    )
+    parser.add_argument(
+        '--var1',
+        help='epi0.22',
+        type=float,
+        required=True
+    )
+
+    args = parser.parse_args()
+    arguments = args.__dict__
+    
     CLASS = {"c_" + str(i): i for i in range(38)}
     RANDOM_STATE = 11
     acgan = DCGAN()
+    
     acgan.train(epochs=300000, batch_size=128, sample_interval=200)
-
-train_dict, test_dict = reader()
-X_train = np.array(train_dict['image'])
-y_train = np.array([CLASS[l] for l in train_dict['class']])
-# with open('D:\\2ndPlant\\regularization_test.pickle', 'wb') as f:
-#     pickle.dump([X_train, y_train], f,protocol=pickle.HIGHEST_PROTOCOL)
-# with open('D:\\2ndPlant\\regularization_test.pickle', 'rb') as f:
-#     X_train, y_train=pickle.load(f)
-X_train, X_valid, y_train, y_valid = train_test_split(
-    X_train,
-    y_train,
-    shuffle=True,
-    train_size=0.019,
-    random_state=RANDOM_STATE
-)
-acgan = DCGAN()
-r, c = 500, 38
-for i in range(14):
-
-    noise = np.random.normal(0, 1, (r * c, 100))
-    sampled_labels = np.array([num for _ in range(r) for num in range(c)])
-    gen_imgs = acgan.generator.predict([noise, sampled_labels])
-    gen_validity, gen_plabels=acgan.discriminator.predict(gen_imgs)
-    gen_imgs=gen_imgs[gen_validity[:,0]>0.6]
-    gen_labels=np.asarray(np.argmax(gen_plabels, axis=1))
-    gen_labels=gen_labels[gen_validity[:,0]>0.6]
-    num_38 =np.sum(gen_labels==38)
-    num_total,=gen_labels.shape
-    print("success rate",(1-num_38/num_total))
-    gen_imgs=gen_imgs[gen_labels<38]
-    gen_labels = gen_labels[gen_labels<38]
-
-    X_train_reg=np.concatenate((X_train,gen_imgs),axis=0)
-    y_train_reg=np.concatenate((y_train,gen_labels),axis=0)
-    print(X_train_reg.shape)
-    train_model(X_train_reg, to_categorical(y_train_reg),X_valid,y_valid,50,i)
-
-    #test_model(X_test, label)
-
-g_final_model = get_model()
-g_final_model.load_weights(filepath='D:/2ndPlant/REVIEW/reg_new_model_weights.h5')
-y_pred=(g_final_model.predict(X_valid)).argmax(axis=-1)
-result=sk.metrics.confusion_matrix(y_valid,y_pred)
-pd.DataFrame(result_max).to_csv("result_max.csv")
-pd.DataFrame(result).to_csv("result.csv")
-
