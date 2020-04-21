@@ -1,0 +1,494 @@
+from __future__ import print_function, division
+import sklearn as sk
+from keras import backend as K
+from sklearn.metrics import classification_report
+from keras.layers import multiply
+from keras.layers import Embedding
+import matplotlib.pyplot as plt
+from keras.models import Sequential
+from keras.layers import Reshape
+from keras.layers.convolutional import UpSampling2D
+from subprocess import check_output
+import numpy as np
+import os
+import imageio
+import pickle
+from keras.models import Model
+from keras.layers import Input
+from keras.layers import Dense
+from keras.layers import Flatten
+from keras.layers import Activation
+from keras.layers import Dropout
+from keras.layers import ZeroPadding2D
+from keras.layers.convolutional import Conv2D
+from keras.layers.pooling import MaxPooling2D
+from keras.layers import BatchNormalization
+from keras.optimizers import Adam, SGD
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from keras.layers.advanced_activations import LeakyReLU
+from keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
+from skimage.transform import resize as imresize
+from tqdm import tqdm
+import pandas as pd
+print(check_output(["ls", "D:/2ndPlant/crowdai_plantvillage"]).decode("utf8"))
+
+class DCGAN():
+    def __init__(self):
+        # Input shape
+        self.img_rows = 128
+        self.img_cols = 128
+        self.channels = 3
+        self.img_shape = (self.img_rows, self.img_cols, self.channels)
+        self.latent_dim = 1000
+        self.num_classes = 38
+        self.X_train, self.x_valid,self.y_train,self.y_valid=reader();
+        optimizer = Adam(0.0002, 0.5)
+
+        # Build and compile the discriminator
+        self.discriminator = self.build_discriminator()
+        self.discriminator.compile(loss='binary_crossentropy',
+            optimizer=optimizer,
+            metrics=['accuracy'])
+
+        # Build the generator
+        self.generator = self.build_generator()
+        #self.generator.load_weights(filepath='D:/2ndPlant/REVIEW/saved_model_dcgan/generator_weights.hdf5')
+        # The generator takes noise as input and generates imgs
+        z = Input(shape=(self.latent_dim,))
+        label = Input(shape=(1,))
+        img = self.generator([z, label])
+
+
+        # For the combined model we will only train the generator
+        self.discriminator.trainable = False
+
+        # The discriminator takes generated images as input and determines validity
+        valid, target_label = self.discriminator(img)
+
+        # The combined model  (stacked generator and discriminator)
+        # Trains the generator to fool the discriminator
+        self.combined = Model([z, label], [valid, target_label])
+
+        def custom_objective(y_true, y_pred):
+            epi = 0.22
+
+            # out = -epi+(1-epi)*K.sparse_categorical_crossentropy(y_true, y_pred)
+            out = -epi * (K.mean(K.log(y_pred + 0.00000001))) + (1 - epi) * K.sparse_categorical_crossentropy(y_true,
+                                                                                                              y_pred)
+            print(out)
+            return out
+
+        self.combined.compile(loss=['binary_crossentropy', custom_objective],
+                              optimizer=optimizer)
+
+    def build_generator(self):
+
+        model = Sequential()
+
+        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
+        model.add(Reshape((7, 7, 128)))
+        model.add(UpSampling2D())
+        model.add(Conv2D(128, kernel_size=3, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
+        model.add(UpSampling2D())
+        model.add(Conv2D(128, kernel_size=3, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
+        model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
+        model.add(Activation("tanh"))
+        model.summary()
+        noise = Input(shape=(self.latent_dim,))
+        label = Input(shape=(1,), dtype='int32')
+        label_embedding = Flatten()(Embedding(self.num_classes, 1000)(label))
+        model_input = multiply([noise, label_embedding])
+        img = model(model_input)
+        return Model([noise, label], img)
+
+    def build_discriminator(self):
+
+        model = Sequential()
+
+        model.add(Conv2D(32, kernel_size=3, strides=2, input_shape=self.img_shape, padding="same"))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
+        model.add(ZeroPadding2D(padding=((0,1),(0,1))))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(128, kernel_size=3, strides=2, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Conv2D(256, kernel_size=3, strides=1, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(LeakyReLU(alpha=0.2))
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+
+
+        model.summary()
+
+        img = Input(shape=self.img_shape)
+        features = model(img)
+        validity = Dense(1, activation="sigmoid")(features)
+        label = Dense(self.num_classes + 1, activation="softmax")(features)
+        return Model(img, [validity, label])
+
+    def train(self, epochs, batch_size=128, sample_interval=50):
+
+        # Load the dataset
+        X_train, x_valid, y_train, y_valid = self.X_train, self.x_valid,self.y_train,self.y_valid;
+        y_train = y_train.reshape(-1, 1)
+        valid = np.ones((batch_size, 1))
+        fake = np.zeros((batch_size, 1))
+
+        for epoch in range(epochs):
+
+            # ---------------------
+            #  Train Discriminator
+            # ---------------------
+
+            # Select a random half of images
+            idx = np.random.randint(0, X_train.shape[0], batch_size)
+            imgs = X_train[idx]
+
+            # Sample noise and generate a batch of new images
+            noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
+            sampled_labels = np.random.randint(0, self.num_classes, (batch_size, 1))
+            gen_imgs = self.generator.predict([noise, sampled_labels])
+            img_labels = y_train[idx]
+            # Train the discriminator (real classified as ones and generated as zeros)
+            img_labels = y_train[idx]
+            fake_labels = self.num_classes * np.ones(img_labels.shape)
+            d_loss_real = self.discriminator.train_on_batch(imgs, [valid, img_labels])
+            d_loss_fake = self.discriminator.train_on_batch(gen_imgs, [fake, fake_labels])
+            d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+            g_loss = self.combined.train_on_batch([noise, sampled_labels], [valid, sampled_labels])
+            print("%d [D loss: %f, acc.: %.2f%%, op_acc: %.2f%%] [G loss: %f]" % (
+            epoch, d_loss[0], 100 * d_loss[3], 100 * d_loss[4], g_loss[0]))
+            if epoch % sample_interval == 0:
+                self.save_model()
+                self.sample_images(epoch)
+
+    def sample_images(self, epoch):
+        r, c = 10, self.num_classes
+        noise = np.random.normal(0, 1, (r * c, 100))
+        sampled_labels = np.array([num for _ in range(r) for num in range(c)])
+        gen_imgs = self.generator.predict([noise, sampled_labels])
+        gen_imgs = 0.5 * gen_imgs + 0.5
+        fig, axs = plt.subplots(6, 7)
+        cnt = 0
+        for i in range(6):
+            for j in range(7):
+                axs[i,j].imshow(gen_imgs[cnt,:,:,0:3])
+                axs[i,j].axis('off')
+                cnt += 1
+        fig.savefig("REVIEW/images_dcgan/%d.png" % epoch)
+        plt.close()
+
+    def save_model(self):
+        def save(model, model_name):
+            model_path = "REVIEW/saved_model_dcgan/%s.json" % model_name
+            weights_path = "REVIEW/saved_model_dcgan/%s_weights.hdf5" % model_name
+            options = {"file_arch": model_path,
+                        "file_weight": weights_path}
+            json_string = model.to_json()
+            open(options['file_arch'], 'w').write(json_string)
+            model.save_weights(options['file_weight'])
+        save(self.generator, "generator")
+        save(self.discriminator, "discriminator")
+
+BATCH_SIZE = 100
+EPOCHS = 300
+RANDOM_STATE = 11
+
+CLASS = {"c_"+str(i):i for i in range(38)}
+
+
+INV_CLASS = {i:"c_"+str(i) for i in range(38)}
+
+
+
+# Dense layers set
+def dense_set(inp_layer, n, activation, drop_rate=0.):
+    dp = Dropout(drop_rate)(inp_layer)
+    dns = Dense(n)(dp)
+    bn = BatchNormalization(axis=-1)(dns)
+    act = Activation(activation=activation)(bn)
+    return act
+
+
+# Conv. layers set
+def conv_layer(feature_batch, feature_map, kernel_size=(3, 3), strides=(1, 1), zp_flag=False):
+    if zp_flag:
+        zp = ZeroPadding2D((1, 1))(feature_batch)
+    else:
+        zp = feature_batch
+    conv = Conv2D(filters=feature_map, kernel_size=kernel_size, strides=strides)(zp)
+    bn = BatchNormalization(axis=3)(conv)
+    act = LeakyReLU(1 / 10)(bn)
+    return act
+
+
+# simple model
+def get_model():
+    model = Sequential()
+    model.add(ZeroPadding2D((1, 1), input_shape=(3, 128, 128)))
+    model.add(Conv2D(64, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(64, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(128, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(128, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(256, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(256, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(256, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(ZeroPadding2D((1, 1)))
+    model.add(Conv2D(512, 3, 3, activation='relu'))
+    model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+
+    model.add(Flatten())
+    model.add(Dense(4096, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(4096, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(38, activation='softmax'))
+    sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy')
+    return model
+
+
+
+def get_callbacks(filepath, patience=5):
+    lr_reduce = ReduceLROnPlateau(monitor='val_acc', factor=0.1, epsilon=1e-5, patience=patience, verbose=1)
+    msave = ModelCheckpoint(filepath, save_best_only=True)
+    return [lr_reduce, msave]
+
+
+def train_model(img, target,a,b,c,d):
+    #callbacks = get_callbacks(filepath='D:/2ndPlant/kaggle_seedling_classification/model_weight_SGD.hdf5', patience=6)
+
+    gmodel = get_model()
+    if d!=0:
+     gmodel.load_weights(filepath='D:/2ndPlant/REVIEW/reg_new_model_weights.h5')
+
+    gen = ImageDataGenerator(
+        rotation_range=360.,
+        width_shift_range=0.3,
+        height_shift_range=0.3,
+        zoom_range=0.3,
+        horizontal_flip=True,
+        vertical_flip=True
+    )
+    history = gmodel.fit_generator(gen.flow(img, target, batch_size=BATCH_SIZE),
+                        steps_per_epoch=len(img) / BATCH_SIZE,
+                         epochs=c,
+                         verbose=1,
+                         shuffle=True,
+                         validation_data=(a, to_categorical(b)))
+    # history = gmodel.fit(img, target, batch_size=BATCH_SIZE,
+    #                      epochs=c, verbose=1, shuffle=True,
+    #                      validation_data=(a, to_categorical(b)))
+    model_json = gmodel.to_json()
+    with open("/REVIEW/saved_model_dcgan/reg_new_model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    gmodel.save_weights("/REVIEW/saved_model_dcgan/reg_new_model_weights.h5")
+    # list all data in history
+    print(history.history.keys())
+
+    global MAX,ep,result_max
+    if np.max(history.history['val_acc'])>MAX:
+        MAX=np.max(history.history['val_acc'])
+        y_pred_max = (gmodel.predict(a)).argmax(axis=-1)
+        result_max = sk.metrics.confusion_matrix(b,y_pred_max)
+        ep=d
+
+
+    print((MAX,ep))
+    dataframe = pd.DataFrame({'acc': history.history['acc'], 'val_acc': history.history['val_acc']})
+    filename="record"+str(d)+".csv"
+    dataframe.to_csv( filename, index=False, sep=',')
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Prediction Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+
+
+
+
+
+# Resize all image to 51x51
+def img_reshape(img):
+    img = imresize(img, (128, 128, 3))
+    return img
+
+
+# get image tag
+def img_label(path):
+    return str(str(path.split('\\')[-1]))
+
+
+# get plant class on image
+def img_class(path):
+    return str(path.split('\\')[-2])
+
+
+# fill train and test dict
+def fill_dict(paths, some_dict):
+    text = ''
+    if 'train' in paths[0]:
+        text = 'Start fill train_dict'
+    elif 'test' in paths[0]:
+        text = 'Start fill test_dict'
+
+    for p in tqdm(paths, ascii=True, ncols=85, desc=text):
+        img = imageio.imread(p)
+        img = img_reshape(img)
+        some_dict['image'].append(img)
+        some_dict['label'].append(img_label(p))
+        if 'train' in paths[0]:
+            some_dict['class'].append(img_class(p))
+
+    return some_dict
+
+
+# read image from dir. and fill train and test dict
+def reader():
+    file_ext = []
+    train_path = []
+    test_path = []
+
+    for root, dirs, files in os.walk('D:/2ndPlant/crowdai_plantvillage'):
+        if dirs != []:
+            print('Root:\n' + str(root))
+            print('Dirs:\n' + str(dirs))
+        else:
+            for f in files:
+                ext = os.path.splitext(str(f))[1][1:]
+
+                if ext not in file_ext:
+                    file_ext.append(ext)
+
+                if 'train' in root:
+                    path = os.path.join(root, f)
+                    train_path.append(path)
+                elif 'test' in root:
+                    path = os.path.join(root, f)
+                    test_path.append(path)
+    train_dict = {
+        'image': [],
+        'label': [],
+        'class': []
+    }
+    test_dict = {
+        'image': [],
+        'label': []
+    }
+
+    train_dict = fill_dict(train_path, train_dict)
+    # test_dict = fill_dict(test_path, test_dict)
+
+    X_train = np.array(train_dict['image'])
+    y_train = np.array([CLASS[l] for l in train_dict['class']])
+    X_train = (X_train.astype(np.float32) - 0.5) * 2
+    y_train = y_train.reshape(-1, 1)
+    with open('D:\\2ndPlant\\regularization.pickle', 'wb') as f:
+        pickle.dump([X_train, y_train], f,protocol=pickle.HIGHEST_PROTOCOL)
+    X_train, x_valid, y_train, y_valid = train_test_split(
+        X_train,
+        y_train,
+        shuffle=True,
+        train_size=0.019,
+        random_state=RANDOM_STATE
+    )
+    return  X_train, x_valid, y_train, y_valid
+
+
+if __name__ == '__main__':
+    CLASS = {"c_" + str(i): i for i in range(38)}
+    RANDOM_STATE = 11
+    acgan = DCGAN()
+    acgan.train(epochs=300000, batch_size=128, sample_interval=200)
+
+train_dict, test_dict = reader()
+X_train = np.array(train_dict['image'])
+y_train = np.array([CLASS[l] for l in train_dict['class']])
+# with open('D:\\2ndPlant\\regularization_test.pickle', 'wb') as f:
+#     pickle.dump([X_train, y_train], f,protocol=pickle.HIGHEST_PROTOCOL)
+# with open('D:\\2ndPlant\\regularization_test.pickle', 'rb') as f:
+#     X_train, y_train=pickle.load(f)
+X_train, X_valid, y_train, y_valid = train_test_split(
+    X_train,
+    y_train,
+    shuffle=True,
+    train_size=0.019,
+    random_state=RANDOM_STATE
+)
+acgan = DCGAN()
+r, c = 500, 38
+for i in range(14):
+
+    noise = np.random.normal(0, 1, (r * c, 100))
+    sampled_labels = np.array([num for _ in range(r) for num in range(c)])
+    gen_imgs = acgan.generator.predict([noise, sampled_labels])
+    gen_validity, gen_plabels=acgan.discriminator.predict(gen_imgs)
+    gen_imgs=gen_imgs[gen_validity[:,0]>0.6]
+    gen_labels=np.asarray(np.argmax(gen_plabels, axis=1))
+    gen_labels=gen_labels[gen_validity[:,0]>0.6]
+    num_38 =np.sum(gen_labels==38)
+    num_total,=gen_labels.shape
+    print("success rate",(1-num_38/num_total))
+    gen_imgs=gen_imgs[gen_labels<38]
+    gen_labels = gen_labels[gen_labels<38]
+
+    X_train_reg=np.concatenate((X_train,gen_imgs),axis=0)
+    y_train_reg=np.concatenate((y_train,gen_labels),axis=0)
+    print(X_train_reg.shape)
+    train_model(X_train_reg, to_categorical(y_train_reg),X_valid,y_valid,50,i)
+
+    #test_model(X_test, label)
+
+g_final_model = get_model()
+g_final_model.load_weights(filepath='D:/2ndPlant/REVIEW/reg_new_model_weights.h5')
+y_pred=(g_final_model.predict(X_valid)).argmax(axis=-1)
+result=sk.metrics.confusion_matrix(y_valid,y_pred)
+pd.DataFrame(result_max).to_csv("result_max.csv")
+pd.DataFrame(result).to_csv("result.csv")
+
