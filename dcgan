@@ -444,7 +444,7 @@ def reader():
 
 
 if __name__ == '__main__':
-parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     # Input Arguments
     parser.add_argument(
         '--epochs',
@@ -452,7 +452,7 @@ parser = argparse.ArgumentParser()
         type=int,
         required=True
     )
-        parser.add_argument(
+    parser.add_argument(
         '--batch',
         help='batchsize',
         type=int,
