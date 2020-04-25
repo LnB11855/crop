@@ -487,7 +487,10 @@ if __name__ == '__main__':
     arguments = args.__dict__
     
     CLASS = {"c_" + str(i): i for i in range(38)}
-    RANDOM_STATE = 11
+    RANDOM_STATE = 11 
+    img_size=arguments['img']
+    noise=arguments['noise']
+    var1=arguments['var1']
     acgan = DCGAN()
     
-    acgan.train(epochs=300000, batch_size=128, sample_interval=200)
+    acgan.train(epochs=arguments['epochs'], batch_size=arguments['batch'], sample_interval=arguments['interval'])
