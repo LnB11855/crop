@@ -1,0 +1,15 @@
+#!/bin/bash
+
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=12
+#SBATCH --gres=gpu:1
+#SBATCH --partition=gpu  
+#SBATCH --mem=4G
+#SBATCH --job-name="GAN"
+#SBATCH --mail-user=luningbi@iastate.edu
+#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=END
+
+module load singularity
+singularity exec machine-learning_latest.sif python dcgan.py --epochs 100 --batch 100 --interval 100 --img 128 --noise 1000 --var1 0.22
