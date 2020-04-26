@@ -58,7 +58,7 @@ class DCGAN():
 
         # Build the generator
         self.generator = self.build_generator()
-        #self.generator.load_weights(filepath='/work/smryan_group/luningbi/saved_model_dcgan/generator_weights.hdf5')
+        #self.generator.load_weights(filepath='/work/smryan/luningbi/saved_model_dcgan/generator_weights.hdf5')
         # The generator takes noise as input and generates imgs
         z = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,))
@@ -191,13 +191,13 @@ class DCGAN():
                 axs[i,j].imshow(gen_imgs[cnt,:,:,0:3])
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("/work/smryan_group/luningbi/images_dcgan/%d.png" % epoch)
+        fig.savefig("/work/smryan/luningbi/images_dcgan/%d.png" % epoch)
         plt.close()
 
     def save_model(self):
         def save(model, model_name):
-            model_path = "/work/smryan_group/luningbi/saved_model_dcgan/%s.json" % model_name
-            weights_path = "/work/smryan_group/luningbi/saved_model_dcgan/%s_weights.hdf5" % model_name
+            model_path = "/work/smryan/luningbi/saved_model_dcgan/%s.json" % model_name
+            weights_path = "/work/smryan/luningbi/saved_model_dcgan/%s_weights.hdf5" % model_name
             options = {"file_arch": model_path,
                         "file_weight": weights_path}
             json_string = model.to_json()
@@ -399,7 +399,7 @@ def reader():
     train_path = []
     test_path = []
 
-    for root, dirs, files in os.walk('/work/smryan_group/luningbi/'):
+    for root, dirs, files in os.walk('/work/smryan/luningbi/'):
         if dirs != []:
             print('Root:\n' + str(root))
             print('Dirs:\n' + str(dirs))
