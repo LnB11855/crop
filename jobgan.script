@@ -12,4 +12,5 @@
 #SBATCH --mail-type=END
 
 module load singularity
+singularity exec machine-learning_latest.sif python gansetup.py install
 singularity exec machine-learning_latest.sif python dcgan.py --epochs 100 --batch 100 --interval 100 --img 128 --noise 1000 --var1 0.22
