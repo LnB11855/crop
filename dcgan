@@ -33,7 +33,7 @@ from sklearn.model_selection import train_test_split
 from skimage.transform import resize as imresize
 from tqdm import tqdm
 import pandas as pd
-
+from keras.utils import to_categorical
 class DCGAN():
     def __init__(self):
         # Input shape
