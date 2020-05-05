@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+import argparse
 import sklearn as sk
 from keras import backend as K
 from sklearn.metrics import classification_report
@@ -32,7 +33,6 @@ from sklearn.model_selection import train_test_split
 from skimage.transform import resize as imresize
 from tqdm import tqdm
 import pandas as pd
-print(check_output(["ls", "D:/2ndPlant/crowdai_plantvillage"]).decode("utf8"))
 
 class DCGAN():
     def __init__(self):
