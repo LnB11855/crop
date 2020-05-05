@@ -91,8 +91,8 @@ class DCGAN():
 
         model = Sequential()
 
-        model.add(Dense(128 * 7 * 7, activation="relu", input_dim=self.latent_dim))
-        model.add(Reshape((7, 7, 128)))
+        model.add(Dense(128 * 8 * 8, activation="relu", input_dim=self.latent_dim))
+        model.add(Reshape((8, 8, 128)))
         model.add(UpSampling2D())
         model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
@@ -101,8 +101,10 @@ class DCGAN():
         model.add(Conv2D(128, kernel_size=3, padding="same"))
         model.add(BatchNormalization(momentum=0.8))
         model.add(Activation("relu"))
+        model.add(UpSampling2D())
         model.add(Conv2D(self.channels, kernel_size=3, padding="same"))
         model.add(Activation("tanh"))
+        model.add(UpSampling2D())
         model.summary()
         noise = Input(shape=(self.latent_dim,))
         label = Input(shape=(1,), dtype='int32')
