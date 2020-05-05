@@ -75,7 +75,7 @@ class DCGAN():
         # Trains the generator to fool the discriminator
         self.combined = Model([z, label], [valid, target_label])
 
-        def custom_objective(self,y_true, y_pred):
+        def custom_objective(y_true, y_pred):
             epi = self.epi
 
             # out = -epi+(1-epi)*K.sparse_categorical_crossentropy(y_true, y_pred)
