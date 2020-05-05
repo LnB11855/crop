@@ -474,7 +474,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--noise',
         help='latent_dim',
-        type=float,
+        type=int,
         required=True
     )
     parser.add_argument(
